@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube MP3 / MP4 Dönüştürücü</title>
+  <style>
+    /* Temel Ayarlar */
+    body {
+      font-family: 'Arial', sans-serif;
+      color: #E0E0E0;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      background: #1B263B;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Arkaplan Parçacık Efekti */
+    canvas#particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    /* Başlık Bölümü (Header) */
+    .header {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      display: flex;
+      align-items: center;
+      z-index: 2;
+    }
+    .logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(45deg, #D4A017, #FFD700);
+      clip-path: polygon(0% 0%, 100% 0%, 75% 100%, 0% 100%);
+      position: relative;
+      margin-right: 10px;
+      animation: logoPulse 2s ease-in-out infinite;
+    }
+    .logo::before {
+      content: '▶';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #1B263B;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .header h1 {
+      color: #D4A017;
+      font-size: 1.8em;
+      margin: 0;
+      text-shadow: 0 0 10px rgba(212, 160, 23, 0.5);
+    }
+    @keyframes logoPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    /* Ana Başlık */
+    h2 {
+      color: #D4A017;
+      font-size: 2.8em;
+      margin: 100px 0 30px;
+      text-shadow: 0 0 10px rgba(212, 160, 23, 0.5);
+      animation: glow 2s ease-in-out infinite alternate;
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 10px rgba(212, 160, 23, 0.5); }
+      to { text-shadow: 0 0 20px rgba(212, 160, 23, 0.8); }
+    }
+
+    /* Form Kutusu */
+    form {
+      background-color: rgba(42, 58, 90, 0.9);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      max-width: 550px;
+      width: 90%;
+      box-sizing: border-box;
+      backdrop-filter: blur(5px);
+      position: relative;
+      z-index: 1;
+      margin-top: 20px;
+    }
+
+    /* Giriş Alanı (Input) */
+    input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      font-size: 16px;
+      border: 2px solid #D4A017;
+      border-radius: 8px;
+      background-color: rgba(224, 224, 224, 0.95);
+      color: #1B263B;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #FFD700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    /* Butonlar */
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 15px 35px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(45deg, #D4A017, #FFD700);
+      color: #1B263B;
+      font-weight: bold;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      flex: 1;
+      min-width: 150px;
+    }
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.5s ease;
+    }
+    button:hover::before {
+      left: 100%;
+    }
+    button:hover {
+      transform: scale(1.05) translateY(-3px);
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.6);
+    }
+    button:active {
+      transform: scale(1);
+    }
+
+    /* Footer Bölümü */
+    .footer {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      color: #FFD700;
+      font-size: 1em;
+      font-weight: bold;
+      opacity: 1;
+      z-index: 1;
+      text-shadow: 0 0 5px rgba(212, 160, 23, 0.5);
+    }
+    .footer .slogan {
+      font-size: 0.8em;
+      color: #D4A017;
+      margin-top: 5px;
+      opacity: 0.7;
+    }
+
+    /* Flash Mesajları Stilleri */
+    .flash-message {
+        padding: 12px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        max-width: 550px;
+        width: 90%;
+        position: relative;
+        z-index: 1;
+    }
+    .flash-message.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    .flash-message.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    /* Yeni Eklenen Alan: Açıklama / Özellikler */
+    .info-section {
+        background-color: rgba(42, 58, 90, 0.7); /* Form ile uyumlu arka plan */
+        padding: 20px;
+        margin-top: 40px; /* Form ile arasında boşluk bırak */
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        max-width: 600px; /* Genişliği biraz artırabiliriz */
+        width: 90%;
+        box-sizing: border-box;
+        z-index: 1;
+        display: flex; /* İçindeki elemanları düzenlemek için flexbox kullan */
+        flex-direction: column; /* İçeriği alt alta sırala */
+        align-items: center; /* Ortala */
+        text-align: center; /* Metni ortala */
+    }
+    .info-section p {
+        font-size: 1.1em;
+        line-height: 1.6;
+        color: #B0B0B0; /* Daha yumuşak bir renk */
+        margin-bottom: 15px;
+    }
+    .info-section .features {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .info-section .feature-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #FFD700; /* Altın sarısı renk */
+        font-weight: bold;
+        font-size: 0.95em;
+    }
+    .info-section .feature-icon {
+        font-size: 2.5em; /* İkon boyutu */
+        margin-bottom: 8px;
+        text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    }
+
+
+    /* Medya Sorguları (Responsive Tasarım) */
+
+    /* 768px genişliğe kadar olan tablet ve küçük ekranlar */
+    @media (max-width: 768px) {
+      .header {
+        top: 10px;
+        left: 10px;
+      }
+      .header h1 {
+        font-size: 1.5em;
+      }
+      .logo {
+        width: 32px;
+        height: 32px;
+      }
+      .logo::before {
+        font-size: 16px;
+      }
+      h2 {
+        font-size: 2.2em;
+        margin: 80px 0 20px;
+      }
+      form {
+        padding: 25px;
+        margin-top: 15px;
+        width: 95%;
+      }
+      input[type="text"] {
+        font-size: 15px;
+        padding: 12px;
+      }
+      .button-group {
+        flex-direction: row;
+        gap: 15px;
+      }
+      button {
+        font-size: 16px;
+        padding: 12px 25px;
+        flex: 1;
+      }
+      .footer {
+        font-size: 0.9em;
+      }
+      .footer .slogan {
+        font-size: 0.7em;
+      }
+      .flash-message {
+        padding: 10px;
+        margin-bottom: 15px;
+        width: 95%;
+      }
+      .info-section {
+          margin-top: 30px;
+          padding: 15px;
+          width: 95%;
+      }
+      .info-section p {
+          font-size: 1em;
+          margin-bottom: 10px;
+      }
+      .info-section .feature-icon {
+          font-size: 2em;
+      }
+    }
+
+    /* 480px genişliğe kadar olan telefonlar */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      .header {
+        top: 10px;
+        left: 10px;
+      }
+      .header h1 {
+        font-size: 1.4em;
+      }
+      .logo {
+        width: 28px;
+        height: 28px;
+      }
+      .logo::before {
+        font-size: 14px;
+      }
+      h2 {
+        font-size: 1.9em;
+        margin: 60px 0 15px;
+      }
+      form {
+        padding: 20px;
+        margin-top: 10px;
+        width: 95%;
+      }
+      input[type="text"] {
+        font-size: 14px;
+        padding: 10px;
+      }
+      .button-group {
+        flex-direction: column;
+        gap: 10px;
+      }
+      button {
+        font-size: 15px;
+        padding: 12px 20px;
+        width: 100%;
+        margin: 0;
+      }
+      .footer {
+        font-size: 0.8em;
+        bottom: 10px;
+      }
+      .footer .slogan {
+        font-size: 0.6em;
+      }
+      .flash-message {
+        padding: 8px;
+        margin-bottom: 10px;
+        font-size: 0.9em;
+        width: 95%;
+      }
+      .info-section {
+          margin-top: 25px;
+          padding: 10px;
+          width: 95%;
+      }
+      .info-section p {
+          font-size: 0.9em;
+          margin-bottom: 8px;
+      }
+      .info-section .features {
+          gap: 15px;
+      }
+      .info-section .feature-icon {
+          font-size: 1.8em;
+      }
+      .info-section .feature-item {
+          font-size: 0.85em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="header">
+    <div class="logo"></div>
+    <h1>YT2Go</h1>
+  </div>
+  <h2>YouTube Dönüştürücü</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form action="/start" method="POST">
+    <input type="text" name="url" placeholder="YouTube video linkini yapıştır" required>
+    <div class="button-group">
+        <button name="format" value="mp3">🎧 MP3</button>
+        <button name="format" value="mp4">🎥 MP4</button>
+    </div>
+  </form>
+
+  <div class="info-section">
+      <p>YouTube videolarınızı kolayca MP3 müziklere veya MP4 videolara dönüştürün ve cihazınıza indirin!</p>
+      <div class="features">
+          <div class="feature-item">
+              <span class="feature-icon">⚡</span>
+              <span>Hızlı Dönüşüm</span>
+          </div>
+          <div class="feature-item">
+              <span class="feature-icon">🎵</span>
+              <span>Yüksek Kaliteli Ses</span>
+          </div>
+          <div class="feature-item">
+              <span class="feature-icon">🎬</span>
+              <span>HD Video Desteği</span>
+          </div>
+          <div class="feature-item">
+              <span class="feature-icon">📱</span>
+              <span>Tüm Cihazlarla Uyumlu</span>
+          </div>
+      </div>
+  </div>
+  <div class="footer">
+    ABİNPRO tarafından geliştirildi
+    <div class="slogan">Dönüştür, Keyfini Çıkar!</div>
+  </div>
+  <script>
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particlesArray = [];
+    const numberOfParticles = 100;
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedX = Math.random() * 0.5 - 0.25;
+        this.speedY = Math.random() * 0.5 - 0.25;
+        this.color = `rgba(${Math.random() * 50 + 205}, ${Math.random() * 50 + 160}, 23, ${Math.random() * 0.3 + 0.2})`;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.size > 0.2) this.size -= 0.01;
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      for (let i = 0; i < numberOfParticles; i++) {
+        particlesArray.push(new Particle());
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particlesArray.length; i++) {
+        particlesArray[i].update();
+        particlesArray[i].draw();
+        if (particlesArray[i].size <= 0.2) {
+          particlesArray.splice(i, 1);
+          particlesArray.push(new Particle());
+          i--;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
